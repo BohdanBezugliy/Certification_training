@@ -45,7 +45,7 @@
         session_start();
         $password = $_SESSION['password'];
         $name = $_SESSION['name'];
-        
+        echo "{$name} {$password}";
     ?>
 </body>
 </html>

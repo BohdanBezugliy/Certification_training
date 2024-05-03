@@ -17,17 +17,84 @@
 <form action="index.php" method="post">
   <div class="mb-3">
     <label for="name" class="form-label">ПІБ</label>
-    <input type="text" class="form-control" id="name">
+    <input type="text" class="form-control" id="name" name="name">
   </div>
   <div class="mb-3">
-    <label for="exampleInputPassword1" class="form-label">Пароль</label>
-    <input type="password" class="form-control" id="exampleInputPassword1">
+    <label for="InputPassword1" class="form-label">Пароль</label>
+    <input type="password" class="form-control" id="InputPassword1" name = "password">
   </div>
   <div class="buttons">
-    <button type="submit" class="btn btn-primary">Вхід</button>
+    <button type="submit" class="btn btn-primary" name="submit">Вхід</button>
     <button type="button" class="btn btn-secondary" onclick="window.location.href='Registration.php'">Реєстрація</button>
   </div>
 </form>
+<?php
+    $name = $_POST['name'];
+    $password = $_POST['password'];
+    if(isset($_POST['submit']))
+    {
+      if(!empty($name) && !empty($password)){
+        if(!empty($name)){
+          if(!empty($password)){
+            $host = "localhost";
+              $port = "8889";
+              $dbname = "Certification_training";
+              $usernameDb = "root";
+              $passwordDb = "root";
+              $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
+            try {
+              $pdo = new PDO($dsn,$usernameDb,$passwordDb);
+              $stmt = $pdo->prepare("SELECT full_name, password_hash FROM Lecture WHERE full_name = :name");
+              $stmt->execute([
+                'name' => $name
+              ]);
+              $lectures = $stmt->fetchAll(PDO::FETCH_ASSOC);
+              if(count($lectures)!=0){
+                foreach($lectures as $key =>$lecture){
+                if(password_verify($password,$lecture['password_hash'])){
+                  session_start();
+                  $_SESSION['password'] = $lecture['password_hash'];
+                  $_SESSION['name'] = $lecture['full_name'];
+                  header("Location: Home_page.php");
+                  exit;
+                }
+              }
+                echo '<div class="alert alert-danger" role="alert">
+                Пароль введено не коректно!
+                </div>';
+              }else{
+                echo '<div class="alert alert-danger" role="alert">
+                Такого користувача не має в системі!
+                </div>';
+                exit;
+              }
+            } catch (PDOException $e) {
+              echo "<div class='alert alert-danger' role='alert'>
+              {$e->getMessage()}
+              </div>";
+            }
+
+          }else{
+            echo '<div class="alert alert-danger" role="alert">
+            Введіть пароль!
+            </div>';
+            exit;
+          }
+        }
+        else{
+          echo '<div class="alert alert-danger" role="alert">
+            Введіть ПІБ!
+            </div>';
+            exit;
+        }
+      }else{
+        echo '<div class="alert alert-danger" role="alert">
+            Введіть дані у поля входу!
+            </div>';
+            exit;
+      }
+    }
+?>
 </div>
 </body>
 </html>

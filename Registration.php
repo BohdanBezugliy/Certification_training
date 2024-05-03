@@ -10,7 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
   integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
   crossorigin="anonymous"></script>
-  <title>Вхід</title>
+  <title>Реєстрація</title>
 </head>
 <body>
 <div class="container">
@@ -20,12 +20,12 @@
     <input type="text" class="form-control" id="name" name="name">
   </div>
   <div class="mb-3">
-    <label for="exampleInputPassword1" class="form-label">Пароль</label>
-    <input type="password" class="form-control" id="exampleInputPassword1" name="passwordFir">
+    <label for="InputPassword1" class="form-label">Пароль</label>
+    <input type="password" class="form-control" id="InputPassword1" name="passwordFir">
   </div>
   <div class="mb-3">
-    <label for="exampleInputPassword1" class="form-label">Повторіть пароль</label>
-    <input type="password" class="form-control" id="exampleInputPassword2" name="passwordSec">
+    <label for="InputPassword1" class="form-label">Повторіть пароль</label>
+    <input type="password" class="form-control" id="InputPassword2" name="passwordSec">
   </div>
   <div class="buttons">
     <input type="submit" class="btn btn-primary my-2" name="submit" value="Зареєструватися">
@@ -49,15 +49,30 @@
               $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
               try {
                 $pdo = new PDO($dsn,$usernameDb,$passwordDb);
-                $stmt = $pdo->prepare("INSERT INTO Lecture(full_name, password_hash) VALUE(:name, :password);");
-                $stmt->execute([
+                $stmtReg = $pdo->prepare("INSERT INTO Lecture(full_name, password_hash) VALUE(:name, :password);");
+                $stmtVerNotCopy = $pdo->prepare("SELECT full_name, password_hash FROM Lecture WHERE full_name = :name");
+                $stmtVerNotCopy->execute([
+                  'name' => $name
+                ]);
+                $lectures = $stmtVerNotCopy->fetchAll(PDO::FETCH_ASSOC);
+                if(count($lectures)!=0){
+                  foreach($lectures as $key =>$lecture){
+                  if(password_verify($_POST['passwordFir'],$lecture['password_hash'])){
+                    echo '<div class="alert alert-danger" role="alert">
+                    Такий користувач існує!
+                    </div>';
+                    exit;
+                  }
+                }
+                }
+                $stmtReg->execute([
                   'name'=>$name,
                   'password'=>$password
                 ]);
-                session_start();
-                $_SESSION['password'] = $password;
-                $_SESSION['name'] = $name;
-                header("Location: Home_page.php");
+                  session_start();
+                  $_SESSION['password'] = $password;
+                  $_SESSION['name'] = $name;
+                  header("Location: Home_page.php");
               } catch (PDOException $e) {
                 echo "<div class='alert alert-danger' role='alert'>
                 {$e->getMessage()}
