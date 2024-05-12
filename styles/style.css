@@ -1,0 +1,36 @@
+.container{
+    width: 50%; 
+    margin-top:10px;
+    background:rgb(187, 200, 218);
+    padding: 20px;
+    border-radius: 20px;
+}
+.changeInput{ 
+    padding: 10px;
+    background:rgb(187, 200, 218);
+    border-radius: 20px;
+}
+.buttons{
+    display: flex;
+    justify-content: space-between;
+}
+header{
+    position: sticky;
+    width: 100%;
+    background:rgb(187, 200, 218);
+}
+header{
+    display: flex;
+    justify-content: center;
+}
+header nav{
+    display: flex;
+    width: 80%;
+    justify-content: space-between;
+}
+header nav a{
+    margin: 10px;
+}
+header nav a:hover{
+    opacity: 0.5;
+}

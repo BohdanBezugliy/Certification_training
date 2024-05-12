@@ -6,7 +6,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
   rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
   crossorigin="anonymous">
-  <link rel="stylesheet" href="/styles/login_and_registration.css">
+  <link rel="stylesheet" href="/styles/style.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
   integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
   crossorigin="anonymous"></script>
@@ -36,7 +36,7 @@
       if(!empty($name) && !empty($password)){
         if(!empty($name)){
           if(!empty($password)){
-            $host = "localhost";
+              $host = "localhost";
               $port = "8889";
               $dbname = "Certification_training";
               $usernameDb = "root";
@@ -44,7 +44,7 @@
               $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
             try {
               $pdo = new PDO($dsn,$usernameDb,$passwordDb);
-              $stmt = $pdo->prepare("SELECT full_name, password_hash FROM Lecture WHERE full_name = :name");
+              $stmt = $pdo->prepare("SELECT full_name, password_hash, id_lecture FROM Lecture WHERE full_name = :name");
               $stmt->execute([
                 'name' => $name
               ]);
@@ -53,42 +53,41 @@
                 foreach($lectures as $key =>$lecture){
                 if(password_verify($password,$lecture['password_hash'])){
                   session_start();
-                  $_SESSION['password'] = $lecture['password_hash'];
-                  $_SESSION['name'] = $lecture['full_name'];
-                  header("Location: Home_page.php");
+                  $_SESSION['id'] = $lecture['id_lecture'];
+                  header("Location: Home_user/Lecture.php");
                   exit;
                 }
               }
-                echo '<div class="alert alert-danger" role="alert">
+                echo '<br><div class="alert alert-danger" role="alert">
                 Пароль введено не коректно!
                 </div>';
               }else{
-                echo '<div class="alert alert-danger" role="alert">
+                echo '<br><div class="alert alert-danger" role="alert">
                 Такого користувача не має в системі!
                 </div>';
                 exit;
               }
             } catch (PDOException $e) {
-              echo "<div class='alert alert-danger' role='alert'>
+              echo "<br><div class='alert alert-danger' role='alert'>
               {$e->getMessage()}
               </div>";
             }
 
           }else{
-            echo '<div class="alert alert-danger" role="alert">
+            echo '<br><div class="alert alert-danger" role="alert">
             Введіть пароль!
             </div>';
             exit;
           }
         }
         else{
-          echo '<div class="alert alert-danger" role="alert">
+          echo '<br><div class="alert alert-danger" role="alert">
             Введіть ПІБ!
             </div>';
             exit;
         }
       }else{
-        echo '<div class="alert alert-danger" role="alert">
+        echo '<br><div class="alert alert-danger" role="alert">
             Введіть дані у поля входу!
             </div>';
             exit;

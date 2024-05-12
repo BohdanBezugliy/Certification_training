@@ -6,7 +6,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
   rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
   crossorigin="anonymous">
-  <link rel="stylesheet" href="/styles/login_and_registration.css">
+  <link rel="stylesheet" href="/styles/style.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
   integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
   crossorigin="anonymous"></script>
@@ -69,10 +69,16 @@
                   'name'=>$name,
                   'password'=>$password
                 ]);
+                  $stmtIdSearch = $pdo->prepare("SELECT * FROM Lecture WHERE full_name = :name AND password_hash = :password;");
+                  $stmtIdSearch->execute([
+                    'name'=>$name,
+                    'password'=>$password
+                  ]);
+                  $lectureIdSearch = $stmtIdSearch->fetch(PDO::FETCH_ASSOC);
                   session_start();
-                  $_SESSION['password'] = $password;
-                  $_SESSION['name'] = $name;
-                  header("Location: Home_page.php");
+                  $_SESSION['id'] = $lectureIdSearch['id_lecture'];
+                  header("Location: Home_user/Lecture.php");
+                  exit;
               } catch (PDOException $e) {
                 echo "<div class='alert alert-danger' role='alert'>
                 {$e->getMessage()}
