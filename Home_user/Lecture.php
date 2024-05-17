@@ -16,8 +16,7 @@
 <header class="sticky-top">
   <nav>
     <a class="nav-link active" href="Lecture.php">Домашня сторінка</a>
-    <a class="nav-link" href="Certification.php">Відомості про підвищення кваліфікації</a>
-    <a class="nav-link" href="Report.php">Вибірка відомостей та формування звіту</a>
+    <a class="nav-link" href="Certification.php">Підвищення кваліфікації</a>
     <a class="nav-link" href="logout.php"><img width="20px" src="/media/sign-out-alt.svg" alt="logout"></a>
 </nav>
   </header>

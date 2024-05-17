@@ -16,12 +16,10 @@
 <header class="sticky-top">
   <nav>
     <a class="nav-link active" href="Lecture.php">Домашня сторінка</a>
-    <a class="nav-link" href="Certification.php">Відомості про підвищення кваліфікації</a>
-    <a class="nav-link" href="Report.php">Вибірка відомостей та формування звіту</a>
+    <a class="nav-link" href="Certification.php">Підвищення кваліфікації</a>
     <a class="nav-link" href="logout.php"><img width="20px" src="/media/sign-out-alt.svg" alt="logout"></a>
 </nav>
   </header>
-  <div style="opacity: 1; border-radius:20px;" class="position-fixed bottom-0 end-0 m-5 bg-secondary-subtle"><a href="#form"><img width="80px" src="/media/edit.png" alt="Переміщення до форми"></a></div>
 <table class="table">
   <tr>
     <th>Найменування закладу</th>
@@ -30,7 +28,9 @@
     <th>Дата початку</th>
     <th>Дата кінця</th>
     <th>Кількість навчальних кредитів (годин)</th>
-    <th></th>
+    <th><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCertificationModal">
+    Додати запис
+  </button></th>
   </tr>
     <?php
         session_start();
@@ -49,124 +49,170 @@
           $documents_and_events = $stmt->fetchAll(PDO::FETCH_ASSOC);
           $hrefDelete = "/Home_user/delete.php";
           foreach($documents_and_events as $key => $document_and_event){
-            $ct_id = $document_and_event['ct_id'];
-            $hrefUpdate = "#form";
-            echo "<tr>
-              <td>{$document_and_event['institution']}</td>
-              <td>{$document_and_event['document_type']}</td>
-              <td>{$document_and_event['topic']} </td>
-              <td>{$document_and_event['date_begin']} </td>
-              <td>{$document_and_event['date_end']} </td>
-              <td>{$document_and_event['credit_hours']}</td>
+            $certificationId = $document_and_event['ct_id'];
+            $institution = $document_and_event['institution'];
+            $documentType = $document_and_event['document_type'];
+            $topic = $document_and_event['topic'];
+            $dateBegin = $document_and_event['date_begin'];
+            $dateEnd = $document_and_event['date_end'];
+            $creditHours = $document_and_event['credit_hours'];
+            $dataAttributes = "data-certification-id='$certificationId' data-institution='$institution' data-document-type='$documentType' data-topic='$topic' data-date-begin='$dateBegin' data-date-end='$dateEnd' data-credit-hours='$creditHours'";
+            ?>
+            <tr>
+            <td><?php echo $institution; ?></td>
+            <td><?php echo $documentType; ?></td>
+            <td><?php echo $topic; ?></td>
+            <td><?php echo $dateBegin; ?></td>
+            <td><?php echo $dateEnd; ?></td>
+            <td><?php echo $creditHours; ?></td>
               <td>
-              <form action='Certification.php' method='post'>
-              <button type='submit' class='btn btn-secondary mx-2' onclick='window.location.href=$hrefUpdate' name='Change' value=$ct_id>Змінити</button>
-              </form>
+              <button type="button" class="btn btn-secondary mx-2 edit-certification-btn" data-bs-toggle="modal" data-bs-target="#addCertificationModal" <?php echo $dataAttributes; ?>>Змінити</button>
               <form action='delete.php' method='post'>
-              <button type='submit' class='btn btn-danger mx-2' onclick='window.location.href=$hrefDelete' name='Delete' value=$ct_id>Видалити</button>
+              <button type='submit' class='btn btn-danger mx-2' onclick='window.location.href=$hrefDelete' name='Delete' value=<?php echo $ct_id;?>>Видалити</button>
               </form>
               </td>
             </tr>
-            ";
-          }
+            <?php 
+            }
         } catch (PDOException $e) {
           echo $e->getMessage();
-        }
-    ?>
+        } 
+        ?>
 </table>
-<section id="form">
-    <?php
-    if(isset($_POST['Change'])){
-      $stmt= $pdo->prepare("SELECT * FROM training WHERE ct_id = :ct_id AND id_lecture = :id;");
-      $stmt->execute([
-        'id' => $_SESSION['id'],
-        'ct_id' => $_POST['Change']
-      ]);
-      $certification = $stmt->fetch(PDO::FETCH_ASSOC);
-      echo "<div id='FormForChange' class='container' style='width: 80%;''>";
-    echo '<form action="Change.php" method="post">';
+<div class="modal fade" id="addCertificationModal" tabindex="-1" aria-labelledby="addCertificationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCertificationModalLabel">Додати запис</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="Certification.php" method="post">
+                        <label for="institution" class="form-label">Найменування закладу:</label>
+                        <input type="text" id="institution" name="institution" class="form-control" required>
 
-    echo '  <label for="institution" class="form-label">Найменування закладу:</label>';
-    echo '  <input type="text" id="institution" name="institution" class="form-control" required value="' . $certification['institution'] . '">';
+                        <label for="document_type" class="form-label mt-2">Вид документа:</label>
+                        <input type="text" id="document_type" name="document_type" class="form-control" required>
 
-    echo '  <label for="document_type" class="form-label mt-2">Вид документа:</label>';
-    echo '  <input type="text" id="document_type" name="document_type" class="form-control" required value="' . $certification['document_type'] . '">';
+                        <label for="topic" class="form-label mt-2">Тема:</label>
+                        <input type="text" id="topic" name="topic" class="form-control" required>
 
-    echo '  <label for="topic" class="form-label mt-2">Тема:</label>';
-    echo '  <input type="text" id="topic" name="topic" class="form-control" required value="' . $certification['topic'] . '">';
+                        <label for="date_begin" class="form-label mt-2">Дата початку:</label>
+                        <input type="date" id="date_begin" name="date_begin" class="form-control" required>
 
-    echo '  <label for="date_begin" class="form-label mt-2">Дата початку:</label>';
-    echo '  <input type="date" id="date_begin" name="date_begin" class="form-control" required value="' . $certification['date_begin'] . '">';
+                        <label for="date_end" class="form-label mt-2">Дата кінця:</label>
+                        <input type="date" id="date_end" name="date_end" class="form-control" required>
 
-    echo '  <label for="date_end" class="form-label mt-2">Дата кінця:</label>';
-    echo '  <input type="date" id="date_end" name="date_end" class="form-control" required value="' . $certification['date_end'] . '">';
+                        <label for="credit_hours" class="form-label mt-2">Кількість навчальних кредитів (годин):</label>
+                        <input type="number" id="credit_hours" name="credit_hours" class="form-control" required>
 
-    echo '  <label for="credit_hours" class="form-label mt-2">Кількість навчальних кредитів (годин):</label>';
-    echo '  <input type="number" id="credit_hours" name="credit_hours" class="form-control" required value="' . $certification['credit_hours'] . '">'; 
-
-    echo '  <div class="buttons my-2">';  
-    echo '    <button type="submit" class="btn btn-primary" name="ChangeCert" value="'. $certification['ct_id'].'">Змінити</button>';
-    echo '  </div>';
-
-    echo '</form>';
-    }else
-    {
-      echo "<div id='FormAdd' class='container' style='width: 80%;'>";
-      echo '<form action="Certification.php" method="post">';
-
-      echo '  <label for="institution" class="form-label">Найменування закладу:</label>';
-      echo '  <input type="text" id="institution" name="institution" class="form-control" required value="' . $certification['institution'] . '">';
-
-      echo '  <label for="document_type" class="form-label mt-2">Вид документа:</label>';
-      echo '  <input type="text" id="document_type" name="document_type" class="form-control" required value="' . $certification['document_type'] . '">';
-
-      echo '  <label for="topic" class="form-label mt-2">Тема:</label>';
-      echo '  <input type="text" id="topic" name="topic" class="form-control" required value="' . $certification['topic'] . '">';
-
-      echo '  <label for="date_begin" class="form-label mt-2">Дата початку:</label>';
-      echo '  <input type="date" id="date_begin" name="date_begin" class="form-control" required value="' . $certification['date_begin'] . '">';
-  
-      echo '  <label for="date_end" class="form-label mt-2">Дата кінця:</label>';
-      echo '  <input type="date" id="date_end" name="date_end" class="form-control" required value="' . $certification['date_end'] . '">';
-
-      echo '  <label for="credit_hours" class="form-label mt-2">Кількість навчальних кредитів (годин):</label>';
-      echo '  <input type="number" id="credit_hours" name="credit_hours" class="form-control" required value="' . $certification['credit_hours'] . '">'; 
-
-      echo '  <div class="buttons my-2">';  
-      echo '    <button type="submit" class="btn btn-primary" name="add" value="'. $certification['ct_id'].'">Додати</button>';
-      echo '  </div>';
-
-      echo '</form>';
-    }
-      if(isset($_POST['add'])){
-      $institution = $_POST['institution'];
-      $documentType = $_POST['document_type'];
-      $topic = $_POST['topic'];
-      $date_begin = $_POST['date_begin'];
-      $date_end = $_POST['date_end'];
-      if($date_begin>$date_end){
-        echo '<br><div class="alert alert-danger" role="alert">
-                Некоректно введена дата!
-                </div>';
-        exit;
-      }else{
-        $creditHours = $_POST['credit_hours'];
-      $sql = "INSERT INTO training (institution, document_type, topic, date_begin, date_end, credit_hours, id_lecture) 
-               VALUES (:institution, :document_type, :topic, :date_begin, :date_end, :credit_hours, :id_lecture)";
-      $stmt = $pdo->prepare($sql);
-      $stmt->bindParam(':institution', $institution);
-      $stmt->bindParam(':document_type', $documentType);
-      $stmt->bindParam(':topic', $topic);
-      $stmt->bindParam(':date_begin', $date_begin);
-      $stmt->bindParam(':date_end', $date_end);
-      $stmt->bindParam(':credit_hours', $creditHours);
-      $stmt->bindParam(':id_lecture', $_SESSION['id']);
-      $stmt->execute();
-      header("Location: Certification.php");
-      }
-    }
-    ?>
+                        <div class="buttons my-2">
+                            <button id="btnFrom" type="submit" name="add" class="btn btn-primary">Додати</button>
+                        </div>
+                </form>
+            </div>
+        </div>
     </div>
-</section>
+</div>
+<script>
+const addCertificationModal = document.getElementById('addCertificationModal');
+const editCertificationBtns = document.querySelectorAll('.edit-certification-btn');
+const institution = document.getElementById('institution');
+const document_type = document.getElementById('document_type');
+const topic = document.getElementById('topic');
+const date_begin = document.getElementById('date_begin');
+const date_end = document.getElementById('date_end');
+const credit_hours = document.getElementById('credit_hours');
+const btnFrom = document.getElementById('btnFrom');
+const addCertificationModalLabel = document.getElementById('addCertificationModalLabel');
+addCertificationModal.addEventListener('hidden.bs.modal', function() {
+    institution.value = "";
+    document_type.value = "";
+    topic.value = "";
+    date_begin.value = "";
+    date_end.value = "";
+    credit_hours.value = "";
+    btnFrom.name = 'add';
+    btnFrom.value = null;
+    btnFrom.innerText = "Додати";
+    addCertificationModalLabel.innerText = "Додати запис"; 
+});
+editCertificationBtns.forEach(button => {
+  button.addEventListener('click', function() {
+    institution.value = this.dataset.institution;
+    document_type.value = this.dataset.documentType;
+    topic.value = this.dataset.topic;
+    date_begin.value = this.dataset.dateBegin;
+    date_end.value = this.dataset.dateEnd;
+    credit_hours.value = this.dataset.creditHours;
+    btnFrom.name = 'change';
+    btnFrom.value = this.dataset.certificationId;
+    btnFrom.innerText = "Змінити";
+    addCertificationModalLabel.innerText = "Змінити запис"; 
+  });
+});
+</script>
+<?php
+if(isset($_POST['add'])){
+  $institution = $_POST['institution'];
+  $documentType = $_POST['document_type'];
+  $topic = $_POST['topic'];
+  $date_begin = $_POST['date_begin'];
+  $date_end = $_POST['date_end'];
+  if($date_begin>$date_end){
+    echo '<br><div class="alert alert-danger" role="alert">
+            Некоректно введена дата!
+            </div>';
+    exit;
+  }else{
+    $creditHours = $_POST['credit_hours'];
+  $sql = "INSERT INTO training (institution, document_type, topic, date_begin, date_end, credit_hours, id_lecture) 
+           VALUES (:institution, :document_type, :topic, :date_begin, :date_end, :credit_hours, :id_lecture)";
+  $stmt = $pdo->prepare($sql);
+  $stmt->bindParam(':institution', $institution);
+  $stmt->bindParam(':document_type', $documentType);
+  $stmt->bindParam(':topic', $topic);
+  $stmt->bindParam(':date_begin', $date_begin);
+  $stmt->bindParam(':date_end', $date_end);
+  $stmt->bindParam(':credit_hours', $creditHours);
+  $stmt->bindParam(':id_lecture', $_SESSION['id']);
+  $stmt->execute();
+  header("Location: Certification.php");
+  }
+}else if(isset($_POST['change'])){
+  $institution = $_POST['institution'];
+  $documentType = $_POST['document_type'];
+  $topic = $_POST['topic'];
+  $date_begin = $_POST['date_begin'];
+  $date_end = $_POST['date_end'];
+  if($date_begin>$date_end){
+    echo '<br><div class="alert alert-danger" role="alert">
+            Некоректно введена дата!
+            </div>';
+    exit;
+  }else{
+    $creditHours = $_POST['credit_hours'];
+  $sql = "UPDATE training
+  SET institution = :institution,
+      document_type = :document_type,
+      topic = :topic,
+      date_begin = :date_begin,
+      date_end = :date_end,
+      credit_hours = :credit_hours
+  WHERE id_lecture = :id AND ct_id = :ct_id;";
+  $stmt = $pdo->prepare($sql);
+  $stmt->bindParam(':institution', $institution);
+  $stmt->bindParam(':document_type', $documentType);
+  $stmt->bindParam(':topic', $topic);
+  $stmt->bindParam(':date_begin', $date_begin);
+  $stmt->bindParam(':date_end', $date_end);
+  $stmt->bindParam(':credit_hours', $creditHours);
+  $stmt->bindParam(':id', $_SESSION['id']);
+  $stmt->bindParam(':ct_id', $_POST['change']);
+  $stmt->execute();
+  header("Location: Certification.php");
+  }
+}
+?>
 </body>
 </html>
