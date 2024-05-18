@@ -13,17 +13,17 @@
     <title>Домашня сторінка</title>
 </head>
 <body>
-  <header>
+<header class="sticky-top">
   <nav>
-    <a class="nav-link active" href="/Home_user/Lecture.php">Домашня сторінка</a>
-    <a class="nav-link" href="/Home_user/Certification.php">Підвищення кваліфікації</a>
-    <a class="nav-link" href="/Home_user/logout.php"><img width="20px" src="/media/sign-out-alt.svg" alt="logout"></a>
+    <a class="nav-link active" href="Lecture.php">Домашня сторінка</a>
+    <a class="nav-link" href="Certification.php">Підвищення кваліфікації</a>
+    <a class="nav-link" href="logout.php"><img width="20px" src="/media/sign-out-alt.svg" alt="logout"></a>
 </nav>
   </header>
 <table class="table">
   <tr>
     <th>ПІБ</th>
-    <th>Позиція</th>
+    <th>Посада</th>
     <th>Наукове звання</th>
     <th>Факультет</th>
   </tr>
@@ -97,18 +97,38 @@
     <input type="text" class="form-control" id="name" name="name">
     </div>
     <div class="mb-2">
-    <label for="position" class="form-label">Позиція</label>
-    <input type="text" class="form-control" id="position" name="position">
+    <label for="position" class="form-label">Посада</label>
+    <select type="text" class="form-select" id="position" name="position">
+      <option value="">Оберіть посаду</option>
+      <option value="Декан">Декан</option>
+      <option value="Завідувач кафедри">Завідувач кафедри</option>
+      <option value="Доцент кафедри">Доцент кафедри</option>
+      <option value="Лаборант">Лаборант</option>
+      <option value="Старший науковий співробітник">Старший науковий співробітник</option>
+      <option value="Аспірант">Аспірант</option>
+      <option value="Науковий співробітник">Науковий співробітник</option>
+    </select>
     </div>
-
     <div class="mb-2">
     <label for="rank" class="form-label">Наукове звання</label>
-    <input type="text" class="form-control" id="rank" name="rank">
+    <select type="text" class="form-select" id="rank" name="rank">
+      <option value="">Оберіть наукове звання</option>
+      <option value="Асистент">Асистент</option>
+      <option value="Лектор">Лектор</option>
+      <option value="Старший лектор">Старший лектор</option>
+      <option value="Доцент">Доцент</option>
+      <option value="Професор">Професор</option>
+    </select>
     </div>
-
     <div class="mb-2">
     <label for="department" class="form-label">Факультет</label>
-    <input type="text" class="form-control" id="department" name="department">
+    <select type="text" class="form-select" id="department" name="department">
+      <option value="">Оберіть факультет</option>
+      <option value="Інноваційних технологій">Інноваційних технологій</option>
+      <option value="Фінансовий">Фінансовий</option>
+      <option value="Економіки, бізнесу та міжнародних відносин">Eкономіки, бізнесу та міжнародних відносин</option>
+      <option value="Управління">Управління</option>
+    </select>
     </div>
     <div class="buttons my-2">
     <button type="submit" class="btn btn-primary" name="Change">Змінити</button>

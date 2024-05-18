@@ -8,7 +8,7 @@ $passwordDb = "root";
 $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
 try {
   $pdo = new PDO($dsn,$usernameDb,$passwordDb);
-  $stmtDelete = $pdo->prepare("DELETE FROM Certification_training WHERE id_lecture = :id AND ct_id = :ct_id;"); 
+  $stmtDelete = $pdo->prepare("DELETE FROM training WHERE id_lecture = :id AND ct_id = :ct_id;"); 
   $stmtDelete->execute([
       'id'=>$_SESSION['id'],
       'ct_id'=>$_POST['Delete']
