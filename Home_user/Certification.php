@@ -10,7 +10,7 @@
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
     crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/styles/style.css">
-    <title>Документи та події</title>
+    <title>Підвищення кваліфікації</title>
 </head>
 <body>
 <header class="sticky-top">
@@ -20,7 +20,43 @@
     <a class="nav-link" href="logout.php"><img width="20px" src="/media/sign-out-alt.svg" alt="logout"></a>
 </nav>
   </header>
-<table class="table">
+    <form style="padding:10px" action="Certification.php" method="post">
+    <table style="width:100%">
+      <tr>
+        <td>
+          <input type="text" name="searchInstitution" class="form-control" placeholder="Найменування закладу" style="border:1px solid grey;">
+        </td>
+        <td>
+          <input type="text" name="searchDocumentType" class="form-control" placeholder="Вид документа" style="border:1px solid grey;">
+        </td>
+        <td>
+          <input type="text" name="searchTopic" class="form-control" placeholder="Тема" style="border:1px solid grey;">
+        </td>
+        <td>
+          <button type="submit" name="search" class="btn btn-info" style="border:1px solid grey;">Пошук</button>
+        </td>
+      </tr>
+      <tr>
+      <td>
+          <label for="date_begin" class="form-label mt-2">Дата початку:</label>
+          <input type="date" style="border:1px solid grey;" name="searchDateBegin" class="form-control">
+        </td>
+        <td>
+          <label for="date_end" class="form-label mt-2">Дата кінця:</label>
+          <input type="date" style="border:1px solid grey;" name="searchDateEnd" class="form-control">
+        </td>
+        <td>
+          <label for="credit_hours" class="form-label mt-2">Кількість навчальних кредитів (годин):</label>
+          <input type="number" style="border:1px solid grey;" name="searchCreditHours" class="form-control">
+        </td>
+        <td class="align-bottom">
+            <a href="CreateReport.php" class="btn btn-dark">Друк</a>
+        </td>
+      </tr>
+    </table>
+    </form>
+  
+<table class="table text-center">
   <tr>
     <th>Найменування закладу</th>
     <th>Вид документа</th>
@@ -42,11 +78,49 @@
         $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
         try {
           $pdo = new PDO($dsn,$usernameDb,$passwordDb);
-          $stmt = $pdo->prepare("SELECT * FROM `training` WHERE id_lecture = :id;");
-          $stmt->execute([
-            'id'=>$_SESSION['id']
-          ]);
-          $documents_and_events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+          echo $e->getMessage();
+        }
+        if (empty($_POST['searchDocumentType']) && empty($_POST['searchInstitution']) 
+          && empty($_POST['searchTopic']) && empty($_POST['searchDateBegin']) 
+          && empty($_POST['searchDateEnd']) && empty($_POST['searchCreditHours'])) {
+            $stmt = $pdo->prepare("SELECT * FROM `training` WHERE id_lecture = :id;");
+            $stmt->execute([
+              'id'=>$_SESSION['id']
+            ]);
+        } 
+        else{
+          $sql = "SELECT * FROM `training` WHERE id_lecture = :id";
+          $searchParams = [];
+          $searchParams[':id'] = $_SESSION['id'];
+          if (!empty($_POST['searchInstitution'])) {
+            $sql .= " AND institution LIKE CONCAT('%', :searchInstitution, '%')";
+            $searchParams[':searchInstitution'] = '%' . $_POST['searchInstitution'] . '%';
+          }
+
+          if (!empty($_POST['searchDocumentType'])) {
+            $sql .= " AND document_type LIKE CONCAT('%', :searchDocumentType, '%')";
+            $searchParams[':searchDocumentType'] = '%' . $_POST['searchDocumentType'] . '%';
+          }
+          if (!empty($_POST['searchDateBegin'])) {
+            $sql .= " AND date_begin >= :searchDateBegin";
+            $searchParams[':searchDateBegin'] = $_POST['searchDateBegin'];
+          }
+          
+          if (!empty($_POST['searchDateEnd'])) {
+            $sql .= " AND date_end <= :searchDateEnd";
+            $searchParams[':searchDateEnd'] = $_POST['searchDateEnd'];
+          }
+          
+          if (!empty($_POST['searchCreditHours'])) {
+            $sql .= " AND credit_hours = :searchCreditHours";
+            $searchParams[':searchCreditHours'] = $_POST['searchCreditHours'];
+          }
+          $stmt = $pdo->prepare($sql);
+          $stmt->execute($searchParams);
+        }
+        $documents_and_events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $_SESSION['documents_and_events'] = $documents_and_events;
           $hrefDelete = "/Home_user/delete.php";
           foreach($documents_and_events as $key => $document_and_event){
             $certificationId = $document_and_event['ct_id'];
@@ -66,17 +140,16 @@
             <td><?php echo $dateEnd; ?></td>
             <td><?php echo $creditHours; ?></td>
               <td>
-              <button type="button" class="btn btn-secondary mx-2 edit-certification-btn" data-bs-toggle="modal" data-bs-target="#addCertificationModal" <?php echo $dataAttributes; ?>>Змінити</button>
+                <div style="display:flex">
+                  <button type="button" class="btn btn-secondary mx-2 edit-certification-btn" data-bs-toggle="modal" data-bs-target="#addCertificationModal" <?php echo $dataAttributes; ?>>Змінити</button>
               <form action='delete.php' method='post'>
               <button type='submit' class='btn btn-danger mx-2' onclick='window.location.href=$hrefDelete' name='Delete' value=<?php echo $ct_id;?>>Видалити</button>
               </form>
+            </div>
               </td>
             </tr>
             <?php 
             }
-        } catch (PDOException $e) {
-          echo $e->getMessage();
-        } 
         ?>
 </table>
 <div class="modal fade" id="addCertificationModal" tabindex="-1" aria-labelledby="addCertificationModalLabel" aria-hidden="true">
@@ -160,12 +233,18 @@ if(isset($_POST['add'])){
   $date_begin = $_POST['date_begin'];
   $date_end = $_POST['date_end'];
   if($date_begin>$date_end){
-    echo '<br><div class="alert alert-danger" role="alert">
-            Некоректно введена дата!
-            </div>';
+    echo '<script>
+    alert("Некоректно введена дата!");
+    </script>';
     exit;
   }else{
     $creditHours = $_POST['credit_hours'];
+    if($creditHours<0){
+      echo '<script>
+      alert("Некоректно введена кількість навчальних кредитів (годин)!");
+      </script>';
+            exit;
+    }
   $sql = "INSERT INTO training (institution, document_type, topic, date_begin, date_end, credit_hours, id_lecture) 
            VALUES (:institution, :document_type, :topic, :date_begin, :date_end, :credit_hours, :id_lecture)";
   $stmt = $pdo->prepare($sql);
@@ -186,12 +265,18 @@ if(isset($_POST['add'])){
   $date_begin = $_POST['date_begin'];
   $date_end = $_POST['date_end'];
   if($date_begin>$date_end){
-    echo '<br><div class="alert alert-danger" role="alert">
-            Некоректно введена дата!
-            </div>';
+    echo '<script>
+      alert("Некоректно введена дата!");
+      </script>';
     exit;
   }else{
     $creditHours = $_POST['credit_hours'];
+    if($creditHours<0){
+      echo '<script>
+        alert("Некоректно введена кількість навчальних кредитів (годин)!");
+        </script>';
+            exit;
+    }
   $sql = "UPDATE training
   SET institution = :institution,
       document_type = :document_type,
