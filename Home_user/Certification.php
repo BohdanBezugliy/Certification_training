@@ -111,11 +111,17 @@
             $sql .= " AND date_end <= :searchDateEnd";
             $searchParams[':searchDateEnd'] = $_POST['searchDateEnd'];
           }
+
+          if (!empty($_POST['searchTopic'])) {
+            $sql .= " AND topic LIKE CONCAT('%', :searchTopic, '%')";
+            $searchParams[':searchTopic'] = $_POST['searchTopic'];
+          }
           
           if (!empty($_POST['searchCreditHours'])) {
             $sql .= " AND credit_hours = :searchCreditHours";
             $searchParams[':searchCreditHours'] = $_POST['searchCreditHours'];
           }
+          
           $stmt = $pdo->prepare($sql);
           $stmt->execute($searchParams);
         }
