@@ -149,7 +149,7 @@
                 <div style="display:flex">
                   <button type="button" class="btn btn-secondary mx-2 edit-certification-btn" data-bs-toggle="modal" data-bs-target="#addCertificationModal" <?php echo $dataAttributes; ?>>Змінити</button>
               <form action='delete.php' method='post'>
-              <button type='submit' class='btn btn-danger mx-2' onclick='window.location.href=$hrefDelete' name='Delete' value=<?php echo $ct_id;?>>Видалити</button>
+              <button type='submit' class='btn btn-danger mx-2' onclick='window.location.href=$hrefDelete' name='Delete' value=<?php echo $certificationId;?>>Видалити</button>
               </form>
             </div>
               </td>
