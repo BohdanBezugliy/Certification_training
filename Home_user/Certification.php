@@ -32,9 +32,6 @@
         <td>
           <input type="text" name="searchTopic" class="form-control" placeholder="Тема" style="border:1px solid grey;">
         </td>
-        <td>
-          <button type="submit" name="search" class="btn btn-info" style="border:1px solid grey;">Пошук</button>
-        </td>
       </tr>
       <tr>
       <td>
@@ -49,14 +46,17 @@
           <label for="credit_hours" class="form-label mt-2">Кількість навчальних кредитів (годин):</label>
           <input type="number" style="border:1px solid grey;" name="searchCreditHours" class="form-control">
         </td>
-        <td class="align-bottom">
-            <a href="CreateReport.php" class="btn btn-dark">Друк</a>
-        </td>
       </tr>
     </table>
+    <div class="buttons my-1" style = "justify-content:space-around;">
+      <button type="submit" id="searchBtn" name="search" class="btn btn-primary">Пошук</button>
+      <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCertificationModal">
+        Додати запис
+      </button>
+      <a href="CreateReport.php" class="btn btn-dark">Друк</a>
+    </div>
     </form>
-  
-<table class="table text-center">
+<table id="Education" class="table text-center">
   <tr>
     <th>Найменування закладу</th>
     <th>Вид документа</th>
@@ -64,9 +64,7 @@
     <th>Дата початку</th>
     <th>Дата кінця</th>
     <th>Кількість навчальних кредитів (годин)</th>
-    <th><button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCertificationModal">
-    Додати запис
-  </button></th>
+    <th></th>
   </tr>
     <?php
         session_start();
@@ -136,11 +134,12 @@
             $dateBegin = $document_and_event['date_begin'];
             $dateEnd = $document_and_event['date_end'];
             $creditHours = $document_and_event['credit_hours'];
-            $dataAttributes = "data-certification-id='$certificationId' data-institution='$institution' data-document-type='$documentType' data-topic='$topic' data-date-begin='$dateBegin' data-date-end='$dateEnd' data-credit-hours='$creditHours'";
+            $linkToDoc = $document_and_event['link_to_doc'];
+            $dataAttributes = "data-link-to-doc='$linkToDoc' data-certification-id='$certificationId' data-institution='$institution' data-document-type='$documentType' data-topic='$topic' data-date-begin='$dateBegin' data-date-end='$dateEnd' data-credit-hours='$creditHours'";
             ?>
             <tr>
             <td><?php echo $institution; ?></td>
-            <td><?php echo $documentType; ?></td>
+            <td><?php echo '<a href="' . $linkToDoc . '">' . $documentType . '</a>';?></td>
             <td><?php echo $topic; ?></td>
             <td><?php echo $dateBegin; ?></td>
             <td><?php echo $dateEnd; ?></td>
@@ -173,6 +172,9 @@
                         <label for="document_type" class="form-label mt-2">Вид документа:</label>
                         <input type="text" id="document_type" name="document_type" class="form-control" required>
 
+                        <label for="document_link" class="form-label mt-2">Посилання на документ:</label>
+                        <input type="text" id="document_link" name="document_link" class="form-control" required>
+
                         <label for="topic" class="form-label mt-2">Тема:</label>
                         <input type="text" id="topic" name="topic" class="form-control" required>
 
@@ -198,6 +200,7 @@ const addCertificationModal = document.getElementById('addCertificationModal');
 const editCertificationBtns = document.querySelectorAll('.edit-certification-btn');
 const institution = document.getElementById('institution');
 const document_type = document.getElementById('document_type');
+const document_link = document.getElementById('document_link');
 const topic = document.getElementById('topic');
 const date_begin = document.getElementById('date_begin');
 const date_end = document.getElementById('date_end');
@@ -211,6 +214,7 @@ addCertificationModal.addEventListener('hidden.bs.modal', function() {
     date_begin.value = "";
     date_end.value = "";
     credit_hours.value = "";
+    document_link.value="";
     btnFrom.name = 'add';
     btnFrom.value = null;
     btnFrom.innerText = "Додати";
@@ -220,6 +224,7 @@ editCertificationBtns.forEach(button => {
   button.addEventListener('click', function() {
     institution.value = this.dataset.institution;
     document_type.value = this.dataset.documentType;
+    document_link.value=this.dataset.linkToDoc;
     topic.value = this.dataset.topic;
     date_begin.value = this.dataset.dateBegin;
     date_end.value = this.dataset.dateEnd;
@@ -238,6 +243,7 @@ if(isset($_POST['add'])){
   $topic = $_POST['topic'];
   $date_begin = $_POST['date_begin'];
   $date_end = $_POST['date_end'];
+  $linkToDoc = $_POST['document_link'];
   if($date_begin>$date_end){
     echo '<script>
     alert("Некоректно введена дата!");
@@ -251,11 +257,12 @@ if(isset($_POST['add'])){
       </script>';
             exit;
     }
-  $sql = "INSERT INTO training (institution, document_type, topic, date_begin, date_end, credit_hours, id_lecture) 
-           VALUES (:institution, :document_type, :topic, :date_begin, :date_end, :credit_hours, :id_lecture)";
+  $sql = "INSERT INTO training (institution, document_type, link_to_doc, topic, date_begin, date_end, credit_hours, id_lecture) 
+           VALUES (:institution, :document_type, :link_to_doc, :topic, :date_begin, :date_end, :credit_hours, :id_lecture)";
   $stmt = $pdo->prepare($sql);
   $stmt->bindParam(':institution', $institution);
   $stmt->bindParam(':document_type', $documentType);
+  $stmt->bindParam(':link_to_doc', $linkToDoc);
   $stmt->bindParam(':topic', $topic);
   $stmt->bindParam(':date_begin', $date_begin);
   $stmt->bindParam(':date_end', $date_end);
@@ -267,6 +274,7 @@ if(isset($_POST['add'])){
 }else if(isset($_POST['change'])){
   $institution = $_POST['institution'];
   $documentType = $_POST['document_type'];
+  $linkToDoc = $_POST['document_link'];
   $topic = $_POST['topic'];
   $date_begin = $_POST['date_begin'];
   $date_end = $_POST['date_end'];
@@ -286,6 +294,7 @@ if(isset($_POST['add'])){
   $sql = "UPDATE training
   SET institution = :institution,
       document_type = :document_type,
+      link_to_doc = :link_to_doc,
       topic = :topic,
       date_begin = :date_begin,
       date_end = :date_end,
@@ -294,6 +303,7 @@ if(isset($_POST['add'])){
   $stmt = $pdo->prepare($sql);
   $stmt->bindParam(':institution', $institution);
   $stmt->bindParam(':document_type', $documentType);
+  $stmt->bindParam(':link_to_doc', $linkToDoc);
   $stmt->bindParam(':topic', $topic);
   $stmt->bindParam(':date_begin', $date_begin);
   $stmt->bindParam(':date_end', $date_end);
