@@ -10,6 +10,23 @@
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
     crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/styles/style.css">
+    <style>
+      @media print{
+    header{
+      display: none;
+    }
+    #SearchFrom{
+      display: none;
+    }
+    .btnsEl{
+      display: none;
+    }
+    .linkDocs a{
+      text-decoration: none;
+      color: black;
+    }
+  }
+    </style>
     <title>Підвищення кваліфікації</title>
 </head>
 <body>
@@ -20,31 +37,31 @@
     <a class="nav-link" href="logout.php"><img width="20px" src="/media/sign-out-alt.svg" alt="logout"></a>
 </nav>
   </header>
-    <form style="padding:10px" action="Certification.php" method="post">
+    <form id="SearchFrom" style="padding:10px" action="Certification.php" method="post">
     <table style="width:100%">
       <tr>
         <td>
-          <input type="text" name="searchInstitution" class="form-control" placeholder="Найменування закладу" style="border:1px solid grey;">
+          <input type="text" name="searchInstitution" class="form-control" id="searchInstitution" placeholder="Найменування закладу" style="border:1px solid grey;">
         </td>
         <td>
-          <input type="text" name="searchDocumentType" class="form-control" placeholder="Вид документа" style="border:1px solid grey;">
+          <input type="text" name="searchDocumentType" class="form-control" id="searchDocumentType" placeholder="Вид документа" style="border:1px solid grey;">
         </td>
         <td>
-          <input type="text" name="searchTopic" class="form-control" placeholder="Тема" style="border:1px solid grey;">
+          <input type="text" name="searchTopic" class="form-control" id="searchTopic" placeholder="Тема" style="border:1px solid grey;">
         </td>
       </tr>
       <tr>
       <td>
           <label for="date_begin" class="form-label mt-2">Дата початку:</label>
-          <input type="date" style="border:1px solid grey;" name="searchDateBegin" class="form-control">
+          <input type="date" style="border:1px solid grey;" id="searchDateBegin" name="searchDateBegin" class="form-control">
         </td>
         <td>
           <label for="date_end" class="form-label mt-2">Дата кінця:</label>
-          <input type="date" style="border:1px solid grey;" name="searchDateEnd" class="form-control">
+          <input type="date" style="border:1px solid grey;" id="searchDateEnd" name="searchDateEnd" class="form-control">
         </td>
         <td>
           <label for="credit_hours" class="form-label mt-2">Кількість навчальних кредитів (годин):</label>
-          <input type="number" style="border:1px solid grey;" name="searchCreditHours" class="form-control">
+          <input type="number" style="border:1px solid grey;" id="searchCreditHours" name="searchCreditHours" class="form-control">
         </td>
       </tr>
     </table>
@@ -53,18 +70,30 @@
       <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCertificationModal">
         Додати запис
       </button>
-      <a href="CreateReport.php" class="btn btn-dark">Друк</a>
+      <button onclick="print()" class="btn btn-dark">Друк</button>
     </div>
     </form>
 <table id="Education" class="table text-center">
   <tr>
-    <th>Найменування закладу</th>
-    <th>Вид документа</th>
-    <th>Тема</th>
-    <th>Дата початку</th>
-    <th>Дата кінця</th>
-    <th>Кількість навчальних кредитів (годин)</th>
-    <th></th>
+    <th>
+      Найменування закладу
+    </th>
+    <th>
+      Вид документа
+    </th>
+    <th>
+      Тема
+    </th>
+    <th>
+      Дата початку
+    </th>
+    <th>
+      Дата кінця
+    </th>
+    <th>
+      Кількість навчальних кредитів (годин)
+    </th>
+    <th class="btnsEl"></th>
   </tr>
     <?php
         session_start();
@@ -86,7 +115,7 @@
             $stmt->execute([
               'id'=>$_SESSION['id']
             ]);
-        } 
+        }
         else{
           $sql = "SELECT * FROM `training` WHERE id_lecture = :id";
           $searchParams = [];
@@ -119,12 +148,10 @@
             $sql .= " AND credit_hours = :searchCreditHours";
             $searchParams[':searchCreditHours'] = $_POST['searchCreditHours'];
           }
-          
           $stmt = $pdo->prepare($sql);
           $stmt->execute($searchParams);
         }
         $documents_and_events = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $_SESSION['documents_and_events'] = $documents_and_events;
           $hrefDelete = "/Home_user/delete.php";
           foreach($documents_and_events as $key => $document_and_event){
             $certificationId = $document_and_event['ct_id'];
@@ -137,14 +164,14 @@
             $linkToDoc = $document_and_event['link_to_doc'];
             $dataAttributes = "data-link-to-doc='$linkToDoc' data-certification-id='$certificationId' data-institution='$institution' data-document-type='$documentType' data-topic='$topic' data-date-begin='$dateBegin' data-date-end='$dateEnd' data-credit-hours='$creditHours'";
             ?>
-            <tr>
+            <tr class="elements">
             <td><?php echo $institution; ?></td>
-            <td><?php echo '<a href="' . $linkToDoc . '">' . $documentType . '</a>';?></td>
+            <td class="linkDocs"><?php echo '<a href="' . $linkToDoc . '">' . $documentType . '</a>';?></td>
             <td><?php echo $topic; ?></td>
             <td><?php echo $dateBegin; ?></td>
             <td><?php echo $dateEnd; ?></td>
             <td><?php echo $creditHours; ?></td>
-              <td>
+              <td class="btnsEl">
                 <div style="display:flex">
                   <button type="button" class="btn btn-secondary mx-2 edit-certification-btn" data-bs-toggle="modal" data-bs-target="#addCertificationModal" <?php echo $dataAttributes; ?>>Змінити</button>
               <form action='delete.php' method='post'>
@@ -196,6 +223,16 @@
     </div>
 </div>
 <script>
+  function sortTable(column, asc=true){
+    const ascOrNot = asc ? 1 : -1;
+    const rows = Array.from(document.getElementsByClassName('elements'));
+    const sorted = rows.sort((a, b)=>{
+      const textA = a.querySelector(`td:nth-child(${column})`).textContent;
+      const textB = b.querySelector(`td:nth-child(${column})`).textContent;
+      return textA > textB ? (1 * ascOrNot) : (-1 * ascOrNot);
+    });
+    console.log(sorted);
+  }
 const addCertificationModal = document.getElementById('addCertificationModal');
 const editCertificationBtns = document.querySelectorAll('.edit-certification-btn');
 const institution = document.getElementById('institution');
