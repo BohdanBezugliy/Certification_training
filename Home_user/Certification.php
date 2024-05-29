@@ -10,26 +10,28 @@
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
     crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/styles/style.css">
-    <style>
-      @media print{
-    header{
-      display: none;
-    }
-    #SearchFrom{
-      display: none;
-    }
-    .btnsEl{
-      display: none;
-    }
-    .linkDocs a{
-      text-decoration: none;
-      color: black;
-    }
-  }
-    </style>
     <title>Підвищення кваліфікації</title>
 </head>
 <body>
+  <?php
+  session_start();
+  $host = "localhost";
+  $port = "8889";
+  $dbname = "Certification_training";
+  $usernameDb = "root";
+  $passwordDb = "root";
+  $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
+  try {
+    $pdo = new PDO($dsn,$usernameDb,$passwordDb);
+  } catch (PDOException $e) {
+    echo $e->getMessage();
+  }
+  $stmt = $pdo->prepare("SELECT * FROM Lecture WHERE id_lecture = :id;");
+          $stmt->execute([
+            'id'=>$_SESSION['id']
+          ]);
+          $lectures = $stmt->fetch(PDO::FETCH_ASSOC);
+  ?>
 <header class="sticky-top">
   <nav>
     <a class="nav-link active" href="Lecture.php">Домашня сторінка</a>
@@ -37,6 +39,12 @@
     <a class="nav-link" href="logout.php"><img width="20px" src="/media/sign-out-alt.svg" alt="logout"></a>
 </nav>
   </header>
+  <div id="info" class="Lecture m-3" style="display:none">
+  <div style='font-size:25px;'><b>ПІБ:</b> <?php echo $lectures['full_name']; ?></div>
+  <div style='font-size:25px;'><b>Посада:</b> <?php echo $lectures['position']; ?></div>
+  <div style='font-size:25px;'><b>Наукове звання:</b> <?php echo $lectures['rank']; ?></div>
+  <div style='font-size:25px;'><b>Факультет:</b> <?php echo $lectures['department']; ?></div>
+</div>
     <form id="SearchFrom" style="padding:10px" action="Certification.php" method="post">
     <table style="width:100%">
       <tr>
@@ -74,6 +82,7 @@
     </div>
     </form>
 <table id="Education" class="table text-center">
+  <thead>
   <tr>
     <th>
       Найменування закладу
@@ -95,19 +104,8 @@
     </th>
     <th class="btnsEl"></th>
   </tr>
+  </thead>
     <?php
-        session_start();
-        $host = "localhost";
-        $port = "8889";
-        $dbname = "Certification_training";
-        $usernameDb = "root";
-        $passwordDb = "root";
-        $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
-        try {
-          $pdo = new PDO($dsn,$usernameDb,$passwordDb);
-        } catch (PDOException $e) {
-          echo $e->getMessage();
-        }
         if (empty($_POST['searchDocumentType']) && empty($_POST['searchInstitution']) 
           && empty($_POST['searchTopic']) && empty($_POST['searchDateBegin']) 
           && empty($_POST['searchDateEnd']) && empty($_POST['searchCreditHours'])) {
@@ -164,7 +162,7 @@
             $linkToDoc = $document_and_event['link_to_doc'];
             $dataAttributes = "data-link-to-doc='$linkToDoc' data-certification-id='$certificationId' data-institution='$institution' data-document-type='$documentType' data-topic='$topic' data-date-begin='$dateBegin' data-date-end='$dateEnd' data-credit-hours='$creditHours'";
             ?>
-            <tr class="elements">
+            <tr>
             <td><?php echo $institution; ?></td>
             <td class="linkDocs"><?php echo '<a href="' . $linkToDoc . '">' . $documentType . '</a>';?></td>
             <td><?php echo $topic; ?></td>
@@ -225,14 +223,32 @@
 <script>
   function sortTable(column, asc=true){
     const ascOrNot = asc ? 1 : -1;
-    const rows = Array.from(document.getElementsByClassName('elements'));
+    const elements = document.getElementById('Education').tBodies[0];
+    const rows = Array.from(elements.querySelectorAll('tr'));
     const sorted = rows.sort((a, b)=>{
-      const textA = a.querySelector(`td:nth-child(${column})`).textContent;
-      const textB = b.querySelector(`td:nth-child(${column})`).textContent;
+      const textA = a.querySelector(`td:nth-child(${column + 1})`).textContent;
+      const textB = b.querySelector(`td:nth-child(${column + 1})`).textContent;
       return textA > textB ? (1 * ascOrNot) : (-1 * ascOrNot);
     });
-    console.log(sorted);
+    while (elements.firstChild) {
+      elements.removeChild(elements.firstChild)
+    };
+    elements.append(...sorted);
+    document.getElementById('Education').querySelectorAll('th').forEach(th=>th.classList.remove("th-sort-asc","th-sort-desc"));
+    document.getElementById('Education').querySelector(`th:nth-child(${column+1})`).classList.toggle("th-sort-asc",asc);
+    document.getElementById('Education').querySelector(`th:nth-child(${column+1})`).classList.toggle("th-sort-desc",!asc);
   }
+  document.getElementById('Education').querySelectorAll('th').forEach((th, index)=>{
+    th.addEventListener('click',()=>{
+      const i = index;
+      const containASC = th.classList.contains("th-sort-asc");
+      if(containASC)
+        th.classList.toggle("th-sort-desc");
+      else
+        th.classList.toggle("th-sort-asc");
+      sortTable(i,!containASC);
+    })
+  })
 const addCertificationModal = document.getElementById('addCertificationModal');
 const editCertificationBtns = document.querySelectorAll('.edit-certification-btn');
 const institution = document.getElementById('institution');
@@ -352,5 +368,31 @@ if(isset($_POST['add'])){
   }
 }
 ?>
+<style>
+      @media print{
+        #info{
+          display: block !important;
+        }
+    header{
+      display: none;
+    }
+    #SearchFrom{
+      display: none;
+    }
+    .btnsEl{
+      display: none;
+    }
+    .linkDocs a{
+      text-decoration: none;
+      color: black;
+    }
+  }
+  .th-sort-asc::after{
+    content: "\25b4" ;
+  }
+  .th-sort-desc::after{
+    content: "\25be";
+  }
+    </style>
 </body>
 </html>
