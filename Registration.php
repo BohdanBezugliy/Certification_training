@@ -33,6 +33,7 @@
   </div>
 </form>
 <?php
+    include('Home_user/ConnectToDb.php');
     $name = $_POST['name'];
     if(isset($_POST['submit']))
     {
@@ -41,15 +42,8 @@
             if(strlen($_POST['passwordFir']) >= 8 && strlen($_POST['passwordSec']) >= 8){
             if($_POST['passwordFir'] == $_POST['passwordSec']){
               $password = password_hash($_POST['passwordFir'],PASSWORD_DEFAULT);
-              $host = "localhost";
-              $port = "8889";
-              $dbname = "Certification_training";
-              $usernameDb = "root";
-              $passwordDb = "root";
-              $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
-              try {
-                $pdo = new PDO($dsn,$usernameDb,$passwordDb);
-                $stmtReg = $pdo->prepare("INSERT INTO Lecture(full_name, password_hash) VALUE(:name, :password);");
+              $pdo = ConnectToDb();
+              $stmtReg = $pdo->prepare("INSERT INTO Lecture(full_name, password_hash) VALUE(:name, :password);");
                 $stmtVerNotCopy = $pdo->prepare("SELECT full_name, password_hash FROM Lecture WHERE full_name = :name");
                 $stmtVerNotCopy->execute([
                   'name' => $name
@@ -79,11 +73,6 @@
                   $_SESSION['id'] = $lectureIdSearch['id_lecture'];
                   header("Location: Home_user/Lecture.php");
                   exit;
-              } catch (PDOException $e) {
-                echo "<div class='alert alert-danger' role='alert'>
-                {$e->getMessage()}
-                </div>";
-              }
             }else{
             echo '<div class="alert alert-danger" role="alert">
             Введені паролі не збігаються!

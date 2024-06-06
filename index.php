@@ -29,6 +29,7 @@
   </div>
 </form>
 <?php
+    include('Home_user/ConnectToDb.php');
     $name = $_POST['name'];
     $password = $_POST['password'];
     if(isset($_POST['submit']))
@@ -36,14 +37,7 @@
       if(!empty($name) && !empty($password)){
         if(!empty($name)){
           if(!empty($password)){
-              $host = "localhost";
-              $port = "8889";
-              $dbname = "Certification_training";
-              $usernameDb = "root";
-              $passwordDb = "root";
-              $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
-            try {
-              $pdo = new PDO($dsn,$usernameDb,$passwordDb);
+             $pdo = ConnectToDb();
               $stmt = $pdo->prepare("SELECT full_name, password_hash, id_lecture FROM Lecture WHERE full_name = :name");
               $stmt->execute([
                 'name' => $name
@@ -67,12 +61,6 @@
                 </div>';
                 exit;
               }
-            } catch (PDOException $e) {
-              echo "<br><div class='alert alert-danger' role='alert'>
-              {$e->getMessage()}
-              </div>";
-            }
-
           }else{
             echo '<br><div class="alert alert-danger" role="alert">
             Введіть пароль!

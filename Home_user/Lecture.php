@@ -28,31 +28,22 @@
     <th>Факультет</th>
   </tr>
     <?php
+        include('ConnectToDb.php');
         session_start();
-        $host = "localhost";
-        $port = "8889";
-        $dbname = "Certification_training";
-        $usernameDb = "root";
-        $passwordDb = "root";
-        $dsn = "mysql:host={$host}:{$port};dbname={$dbname}";
-        try {
-          $pdo = new PDO($dsn,$usernameDb,$passwordDb);
-          $stmt = $pdo->prepare("SELECT * FROM Lecture WHERE id_lecture = :id;");
-          $stmt->execute([
-            'id'=>$_SESSION['id']
-          ]);
-          $lectures = $stmt->fetchAll(PDO::FETCH_ASSOC);
-          foreach($lectures as $key => $lecture){
-            echo"<tr>
-              <td>{$lecture['full_name']}</td>
-              <td>{$lecture['position']}</td>
-              <td>{$lecture['rank']} </td>
-              <td>{$lecture['department']}</td>
-            </tr>
-            ";
-          }
-        } catch (PDOException $e) {
-          echo $e->getMessage();
+        $pdo = ConnectToDb();
+        $stmt = $pdo->prepare("SELECT * FROM Lecture WHERE id_lecture = :id;");
+        $stmt->execute([
+          'id'=>$_SESSION['id']
+        ]);
+        $lectures = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach($lectures as $key => $lecture){
+          echo"<tr>
+            <td>{$lecture['full_name']}</td>
+            <td>{$lecture['position']}</td>
+            <td>{$lecture['rank']} </td>
+            <td>{$lecture['department']}</td>
+          </tr>
+          ";
         }
         if(isset($_POST['Change'])){
             if(!empty($_POST['position'])){
