@@ -34,16 +34,19 @@ function sortTable(column, asc=true){
   }
   document.getElementById('Education').querySelectorAll('th').forEach((th, index)=>{
     th.addEventListener('click',()=>{
-      const containASC = th.classList.contains("th-sort-asc");
+    if(index !== document.getElementById('Education').querySelectorAll('th').length - 1){
+        const containASC = th.classList.contains("th-sort-asc");
       if(containASC)
         th.classList.toggle("th-sort-desc");
-    else
+      else
         th.classList.toggle("th-sort-asc");
       if(index === document.getElementById('Education').querySelectorAll('th').length - 2){
         sortTableCreditHours(index,!containASC);
-      }else{
+      }
+      else{
         sortTable(index,!containASC);
       }
+    }
     })
   });
 const addCertificationModal = document.getElementById('addCertificationModal');
